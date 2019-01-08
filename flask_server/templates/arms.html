@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="zh-Hans" style="background-color: #eaeaea;">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <title>武器分析</title>
+
+    <script src="../static/indexJs/index/log-reporter.js"></script>
+    <script src="../static/indexJs/index/jquery3.js"></script>
+
+    {#  Bootstrap  #}
+    <script src="../static/bootstrap/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="../static/bootstrap/bootstrap.min.css">
+
+    {#  浮动面板  #}
+    <script src="../static/floatPanel/floatPanel.min.js"></script>
+    <link rel="stylesheet" href="../static/floatPanel/floatPanel.min.css">
+
+    {#  jquery.dataBasetable.js  #}
+    <script src="../static/js/jquery/dataBaseTable/js/jquery.dataTables.min.js"></script>
+    <script src="../static/js/jquery/dataBaseTable/js/dataTables.bootstrap.min.js"></script>
+    {#    <link rel="stylesheet" href="../static/js/jquery/dataBaseTable/js/jquery.dataTables.css">#}
+    <link rel="stylesheet" href="../static/js/jquery/dataBaseTable/js/dataTables.bootstrap.min.css">
+
+    {#  pageloader.js  #}
+    <link rel="stylesheet" href="../static/css/win10.css">
+    <link rel="stylesheet" href="../static/indexJs/home.css">
+    {#  letterfx  #}
+    <link href="../static/js/jquery/letterfx/jquery-letterfx.css" rel="stylesheet" type="text/css"/>
+    <script src="../static/js/jquery/letterfx/jquery-letterfx.js"></script>
+
+</head>
+<style>
+    .panel-diy {
+        -webkit-box-shadow: 0 1px 3px 0 rgba(0, 0, 0, .2);
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, .2);
+    }
+
+    #panel-float {
+        z-index: 100000;
+        margin-top: 50px;
+    }
+
+    .panels {
+        cursor: default;
+    }
+
+    .arms-img {
+        display: inline-block;
+        overflow: hidden;
+        background-repeat: no-repeat;
+        line-height: 999;
+        vertical-align: top;
+        width: 26px;
+        height: 26px;
+    }
+
+    .arms-img-span {
+        position: static;
+        left: 0;
+        top: 0;
+        display: inline-block;
+        width: 26px;
+        height: 26px;
+        border: 1px solid #dbdbdb;
+        background-color: #eaeaea;
+    }
+
+    .floatPanel-img {
+        position: static;
+        left: 0;
+        top: 0;
+        display: inline-block;
+        width: 125px;
+        height: 125px;
+        border: 1px solid #dbdbdb;
+        background-color: #eaeaea;
+    }
+
+    .floatPanel-img-ammo {
+        position: static;
+        left: 0;
+        top: 0;
+        display: inline-block;
+        width: 15px;
+        height: 15px;
+        border: 1px solid #dbdbdb;
+        background-color: #eaeaea;
+        padding: 0px 0px 0px 0px;
+        margin: 3px 6px 0px 0px;
+    }
+
+    .fullwidth .expand {
+        height: 3px;
+        margin: 2px 0;
+        background: #0563bc;
+        position: static;
+        box-shadow: 0px 0px 10px 1px rgba(0, 198, 255, 0.7);
+        padding: 3px;
+        /*-moz-animation:fullexpand 1s ease-out;*/
+        /*-webkit-animation:fullexpand 1s ease-out;*/
+    }
+
+    .tagline {
+        font-size: 35px;
+        font-weight: 600;
+        color: #fff;
+        position: fixed;
+        z-index: 100000;
+        bottom: 30px;
+        right: 50px;
+    }
+
+    .dataTables_filter {
+        display: none;
+    }
+
+    li {
+        cursor: context-menu;
+    }
+</style>
+<body style="background-color: #eaeaea;min-height: 2000px;">
+<div class="loading-page" id="loading-page">
+    <p class="tagline">冬天统治了一切，谁敢直面风雪？</p>
+    <div class="htmleaf-content" style="position: fixed;top: 50%;left: 50%;text-align: center;transform: translate(-50%,-50%);">
+        <span class="loading-text" style="font-size: 30px;font-weight: 500;color: #fff;">准备战场中</span>
+        <span class="ls-1" style="height: 6px;width: 6px;background: #fff;"></span>
+        <span class="ls-2" style="height: 6px;width: 6px;background: #fff;"></span>
+        <span class="ls-3" style="height: 6px;width: 6px;background: #fff;"></span>
+        <span class="ls-4" style="height: 6px;width: 6px;background: #fff;"></span>
+        <span class="ls-5" style="height: 6px;width: 6px;background: #fff;"></span>
+        <span class="ls-6" style="height: 6px;width: 6px;background: #fff;"></span>
+    </div>
+</div>
+<script>
+    fx = {
+        "fx": "smear",
+        "backwards": false,
+        "timing": 200,
+        "fx_duration": "300ms",
+        "letter_end": "rewind",
+        "element_end": "restore"
+    }
+    $('.tagline').letterfx(fx);
+    $(function () {
+        setTimeout(function () {
+            $('#loading-page').remove()
+        }, 2000);
+    });
+</script>
+<div class="ie-tips"></div>
+<div id="home-app"></div>
+<div id="app">
+    <div class="bili-header-m report-wrap-module" style="background-color: #03030300;">
+        <div class="nav-menu">
+            <div class="blur-bg"></div>
+            <div class="nav-mask" id="top" style="background-color: rgba(0,0,0,.2)"></div>
+            <div class="bili-wrapper clearfix">
+                <div class="nav-con fl">
+                    <ul>
+                        <li style="float: left;text-align: center;line-height: 42px;">
+                            <p id="sjcj"
+                               style="color: #f6f6f6;font-size: 19px;padding: 0px 15px 0px 0px;font-weight: 500;">
+                                数据求生</p>
+                        </li>
+                        <li class="nav-item">
+                            <a href="/" class="t"><span
+                                    class="glyphicon glyphicon-home"></span>&nbsp;首页</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="/dataStatistics" class="t">
+                                <span class="glyphicon glyphicon-stats"></span>&nbsp;数据统计
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="/arms" class="t" style="background-color: #ffffff80;color: #000;">
+                                <span class="glyphicon glyphicon-screenshot"></span>&nbsp;武器分析
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="/maps" class="t"><span
+                                    class="glyphicon glyphicon-map-marker"></span>&nbsp;地图分布</a>
+                        </li>
+                    </ul>
+                </div>
+                <div report-id="playpage_contribution" class="up-load fr">
+                    <a target="_blank" class="u-link t" style="font-size: 24px;" id="top-btn">
+                        <span class="glyphicon glyphicon-screenshot" id="top-icon"></span></a>
+                </div>
+            </div>
+        </div>
+        <video src="../static/av/bg_av.mp4"
+               style="position: fixed;top: 0px;left: 0;right: 0;bottom: 0;height: auto;z-index: -1000000;"
+               class="head-banner report-wrap-module report-scroll-module"
+               autoplay="autoplay" id="banner_link" preload="true" loop="loop"></video>
+        <div class="bili-wrapper" id="main" style="padding-top: 45px;">
+            <div id="primary_menu" class="primary-menu report-wrap-module report-scroll-module " scrollshow="true">
+                <div style="float: left;width: 20%;" id="sjlx" class="panel panel-default panel-diy">
+                    <div class="panel-heading" style="color: #fff;background-color: rgba(221,135,0,.8);">武器类型</div>
+                    <div class="panel-body" style="padding: 0;">
+                        <!-- List group -->
+                        <ul class="list-group" id="arms-list">
+                            <li class="list-group-item" onclick="showArmsData('all')"
+                                style="padding: 10px 15px;margin-bottom: -1px;">全部
+                            </li>
+                            {% for data in armsTypes %}
+                                <li class="list-group-item" onclick="showArmsData('{{ data[0] }}')"
+                                    style="padding: 10px 15px;margin-bottom: -1px;">{{ data[0] }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                <div style="float: left;width: 20%;display: none" id="sjtj" class="panel panel-default panel-diy">
+                    <div class="panel-heading" style="color: #fff;background-color: rgba(53,158,221,0.8);">数据统计</div>
+                    <div class="panel-body" style="padding: 0;">
+                        <!-- List group -->
+                        <ul class="list-group" id="arms-list">
+                            <li class="list-group-item" onclick="TagArmsData('big')"
+                                style="padding: 10px 15px;margin-bottom: -1px;">远距离武器数据
+                            </li>
+                        </ul>
+                        <ul class="list-group" id="arms-list">
+                            <li class="list-group-item" onclick="TagArmsData('small')"
+                                style="padding: 10px 15px;margin-bottom: -1px;">近距离武器数据
+                            </li>
+                        </ul>
+                        <ul class="list-group" id="arms-list">
+                            <li class="list-group-item" onclick="TagArmsData('most')"
+                                style="padding: 10px 15px;margin-bottom: -1px;">常用武器数据
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div style="float: right;width: 78%;" class="panel panel-info panel-diy">
+
+
+                    <div class="bs-example bs-example-tabs" data-example-id="togglable-tabs">
+                        <ul id="myTabs" class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active" style="width: 25%;"><a href="#home" id="home-tab"
+                                                                                          style="text-align: center;font-size: 16px;padding: 5px 0px 0px 0px;margin: 0;"
+                                                                                          role="tab"
+                                                                                          data-toggle="tab"
+                                                                                          onclick="tabShow('0')"
+                                                                                          aria-controls="home"
+                                                                                          aria-expanded="true">武器统计</a>
+                            </li>
+                            <li role="presentation" class="" style="width: 25%;"><a href="#profile" role="tab"
+                                                                                    style="text-align: center;font-size: 16px;padding: 5px 0px 0px 0px;margin: 0;"
+                                                                                    id="profile-tab"
+                                                                                    data-toggle="tab"
+                                                                                    onclick="tabShow('0')"
+                                                                                    aria-controls="profile"
+                                                                                    aria-expanded="false">武器性能</a>
+                            </li>
+                            <li role="presentation" class="" style="width: 25%;"><a href="#profile1" role="tab"
+                                                                                    style="text-align: center;font-size: 16px;padding: 5px 0px 0px 0px;margin: 0;"
+                                                                                    id="profile-tab1" data-toggle="tab"
+                                                                                    onclick="tabShow('1')"
+                                                                                    aria-controls="profile1"
+                                                                                    aria-expanded="false">数据统计</a>
+                            </li>
+                            <li style="width: 25%;height: 30px;font-size: 14px;padding: 5px 15px 0px 0px;text-align: right;color: #e49f33;"
+                                id="showType"></li>
+                        </ul>
+                        <div id="myTabContent" class="tab-content">
+                            <div role="tabpanel" class="tab-pane fade active in" id="home" aria-labelledby="home-tab">
+
+                                <table id="arms-table1" class="display table table-hover table-bordered" cellspacing="0"
+                                       width="100%">
+                                    <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>刷新率</th>
+                                        <th>使用率</th>
+                                        <th>平均击杀距离</th>
+                                        <th>hide01</th>
+                                        <th>hide02</th>
+                                    </tr>
+                                    </thead>
+                                    <tfoot>
+                                    <tr>
+                                        <th></th>
+                                        <th>刷新率</th>
+                                        <th>使用率</th>
+                                        <th>平均击杀距离</th>
+                                        <th>hide01</th>
+                                        <th>hide02</th>
+                                    </tr>
+                                    </tfoot>
+                                    <tbody>
+                                    {% for data in datas %}
+                                        <tr>
+                                            <th class="panels panels-arms" title="{{ data[0] }}" scope="row"
+                                                style="padding: 4px;font-size: 20px;font-weight: 500;margin: 0px;">
+                                    <span class="arms-img-span">
+                                        <i class="arms-img"
+                                           style="background-image: url('../static/img/img/{{ data[1] }}.jpg');background-size: cover;background-position: center;"></i>
+                                    </span>
+                                                {{ data[0] }}
+                                            </th>
+                                            <td>{{ data[7] }}</td>
+                                            <td>{{ round(data[16]*100,3) }}%</td>
+                                            <td>{{ data[17] }}米</td>
+                                            <td>{{ data[2] }}</td>
+                                            <td>{{ data[3] }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div role="tabpanel" class="tab-pane fade" id="profile" aria-labelledby="profile-tab">
+                                <table id="arms-table2" class="display table table-hover table-bordered" cellspacing="0"
+                                       width="100%">
+                                    <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>伤害</th>
+                                        <th>射速</th>
+                                        <th>装弹时间</th>
+                                        <th>武器冲击力</th>
+                                        <th>hide01</th>
+                                    </tr>
+                                    </thead>
+                                    <tfoot>
+                                    <tr>
+                                        <th></th>
+                                        <th>伤害</th>
+                                        <th>射速</th>
+                                        <th>装弹时间</th>
+                                        <th>武器冲击力</th>
+                                        <th>hide01</th>
+                                    </tr>
+                                    </tfoot>
+                                    <tbody>
+                                    {% for data in datas %}
+                                        <tr>
+                                            <th class="panels panels-arms" title="{{ data[0] }}" scope="row"
+                                                style="padding: 4px;font-size: 20px;font-weight: 500;margin: 0px;">
+                                    <span class="arms-img-span">
+                                        <i class="arms-img"
+                                           style="background-image: url('../static/img/img/{{ data[1] }}.jpg');background-size: cover;background-position: center;"></i>
+                                    </span>
+                                                {{ data[0] }}
+                                            </th>
+                                            <td>{{ data[8] }}</td>
+                                            <td>{{ data[9] }}s</td>
+                                            <td>{{ data[11] }}s</td>
+                                            <td>{{ data[13] }}</td>
+                                            <td>{{ data[2] }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div role="tabpanel" class="tab-pane fade" id="profile1" aria-labelledby="profile-tab1"
+                                 style="height: 350px">
+                                <iframe id="echartsPage"
+                                        style="margin-top: 10px;width: 100%;height: 100%;border: 0px;"></iframe>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel-body" style="padding: 10px;">
+                        <!-- Table -->
+
+                        <script>
+                            var armsTable1 = $('#arms-table1').DataTable({
+                                paging: false,
+                                "order": [[2, "desc"]], //默认排序
+                                {#searching: false,#}
+                                columnDefs: [{
+                                    targets: [0],
+                                    orderable: false
+                                }, {
+                                    targets: [1],
+                                    orderData: [1, 2]  //如果第二列进行排序，有相同数据则按照第一列顺序排列
+                                }, {
+                                    targets: [2],
+                                    orderData: [2, 3]  //如果第五列进行排序，有相同数据则按照第一列顺序排列
+                                }, {
+                                    targets: [3],
+                                    orderData: [3]  //如果第五列进行排序，有相同数据则按照第一列顺序排列
+                                }, {
+                                    targets: [4, 5],
+                                    visible: false
+                                }],
+                                "info": false,
+                                "jQueryUI": true,
+                            });
+                            var armsTable2 = $('#arms-table2').DataTable({
+                                paging: false,
+                                "order": [[2, "desc"]], //默认排序
+                                {#searching: false,#}
+                                columnDefs: [{
+                                    targets: [0],
+                                    orderable: false
+                                }, {
+                                    targets: [1],
+                                    orderData: [1, 2]  //如果第二列进行排序，有相同数据则按照第一列顺序排列
+                                }, {
+                                    targets: [2],
+                                    orderData: [2, 3]  //如果第五列进行排序，有相同数据则按照第一列顺序排列
+                                }, {
+                                    targets: [3],
+                                    orderData: [3]  //如果第五列进行排序，有相同数据则按照第一列顺序排列
+                                }, {
+                                    targets: [5],
+                                    visible: false
+                                }],
+                                "info": false,
+                                "jQueryUI": true,
+                            });
+                        </script>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+{#  顶栏效果  #}
+<script>
+
+    var topIcon = $('#top-icon')
+    var topBtn = $('#top-btn')
+
+
+    function topbar() {
+        var top = $('#top')
+        var bg = $('#banner_link')
+        var thisHeight = $(window).scrollTop()
+        if (thisHeight >= 0 && thisHeight <= 250) {
+            var hei = (thisHeight) / 250
+            if (hei >= 0.3) {
+                $('.t').css('color', 'rgb(' + hei * 255 + ', ' + hei * 255 + ', ' + hei * 255 + ')')
+            } else {
+                $('.t').css('color', 'rgb(' + (1 - hei) * 255 + ', ' + (1 - hei) * 255 + ', ' + (1 - hei) * 255 + ')')
+            }
+            {#top.css('background-color', 'rgba(221,135,0,' + hei + ')');#}
+        }
+
+
+        if (thisHeight > 250 && thisHeight < 700) {
+            var hei = (thisHeight - 250) / 450
+        } else if (thisHeight > 700) {
+            {#top.css('background-color', 'hsla(, 0%, 50%, 0)');#}
+        }
+        if (thisHeight > 700) {
+            topIcon.removeClass("glyphicon-screenshot")
+            topIcon.addClass("glyphicon-hand-up")
+            {#top.css('background-color', 'rgba(221,135,0,1)');#}
+        } else {
+            topIcon.removeClass("glyphicon-hand-up")
+            topIcon.addClass("glyphicon-screenshot")
+
+        }
+
+    }
+
+    $(window).scroll(function () {
+        topbar()
+    });
+</script>
+{#  返回顶栏  #}
+<script>
+    function returnTop() {
+        $("html,body").stop(true);
+        $("html,body").animate({scrollTop: $("#main").offset().top}, 1000);
+        return false;
+    }
+
+    $(function () {
+        returnTop()
+        topbar()
+    });
+
+    topBtn.click(function () {
+        returnTop()
+    })
+</script>
+<script>
+    function htmlPanelData(data) {
+        var mapList = data[6].split(',')
+        var mapStr = ''
+        for (let index in mapList) {
+            mapStr += "<label style=\"font-size: 11px;font-weight: 500;padding: 1px;margin-right: 2px;\" class=\"label label-info\">" + mapList[index] + "</label>"
+        }
+
+        var htmlData = "            <div class=\"row\">\n" +
+            "                <i class=\"arms-img floatPanel-img col-xs-6\"\n" +
+            "                   style=\"background-image: url(../static/img/img/" + data[1] + ".jpg);background-size: cover;background-position: center;\"></i>\n" +
+            "                <div class=\"col-xs-6\">\n" +
+            "                    <div style=\"padding: 0px 0px 0px 12px;font-size: 25px;font-weight: 600;color: #777;\">" + data[0] + "</div>\n" +
+            "                    <div style=\"padding: 0px 0px 0px 12px;font-size: 14px;color: #000;\" class=\"row\"><label\n" +
+            "                            style=\"color: #777;\" class=\"col-xs-5\">类型:</label>\n" +
+            "                        <div class=\" col-xs-7\"><label class=\"label label-default\">" + data[2] + "</label></div>\n" +
+            "                    </div>\n" +
+            "                    <div style=\"padding: 0px 0px 0px 12px;font-size: 14px;color: #000;\" class=\"row\"><label\n" +
+            "                            style=\"color: #777;\" class=\"col-xs-5\">弹药:</label>\n" +
+            "                        <div class=\" col-xs-7\"><i class=\"arms-img floatPanel-img-ammo\"\n" +
+            "                                                  style=\"background-image: url(../static/img/ammoImg/" + data[4] + ");background-size: cover;background-position: center;\"></i><label\n" +
+            "                                style=\"font-size: 13px;font-weight: 600;color: #444;\">" + data[3] + "</label></div>\n" +
+            "                    </div>\n" +
+            "                    <div style=\"padding: 0px 0px 0px 12px;font-size: 14px;color: #000;\" class=\"row\"><label\n" +
+            "                            style=\"color: #777;\" class=\"col-xs-5\">射击模式:</label>\n" +
+            "                        <div class=\" col-xs-7\">\n" +
+            "                            <label style=\"font-size: 13px;font-weight: 600;color: #444;\">" + data[5] + "</label></div>\n" +
+            "                    </div>\n" +
+            "                    <div style=\"padding: 0px 0px 0px 12px;font-size: 14px;color: #000;\" class=\"row\"><label\n" +
+            "                            style=\"color: #777;\" class=\"col-xs-5\">刷新地图:</label>\n" +
+            "                        <div class=\" col-xs-7\">\n" +
+            mapStr +
+            "</div></div>\n" +
+            "                    <div style=\"padding: 0px 0px 0px 12px;font-size: 14px;color: #000;width: 100%;\" class=\"row\"><label\n" +
+            "                            style=\"color: #777;\" class=\"col-xs-5\">刷新率:</label>\n" +
+            "                        <div class=\" col-xs-7\">\n" +
+            "                            <label style=\"font-size: 13px;font-weight: 600;color: #444;width: 100%;\">" + data[7] + "</label></div>\n" +
+            "                    </div>\n" +
+            "                </div>\n" +
+            "            </div>\n" +
+            "            <div class=\"row\" style=\"padding: 9px 0px 0px 0px;\">\n" +
+            "                <div class=\"col-xs-3\">\n" +
+            "                    伤害\n" +
+            "                </div>\n" +
+            "                <div class=\"col-xs-7\">\n" +
+            "                </div>\n" +
+            "                <div class=\"col-xs-2\" style=\"text-align: right;\">\n" +
+            "                    " + data[8] + "\n" +
+            "                </div>\n" +
+            "            </div>\n" +
+            "            <div class=\"row\">\n" +
+            "                <div id=\"content\" class=\"fullwidth\" style=\"width: 100%;background-color: #ccc;height: 7px;\">\n" +
+            "                    <div class=\"expand\" style=\"width: " + (data[8] / 400.0 * 100) + "%;\"></div>\n" +
+            "                </div>\n" +
+            "            </div>\n" +
+            "            <div class=\"row\" style=\"padding: 9px 0px 0px 0px;\">\n" +
+            "                <div class=\"col-xs-3\">\n" +
+            "                    射速\n" +
+            "                </div>\n" +
+            "                <div class=\"col-xs-7\">\n" +
+            "                </div>\n" +
+            "                <div class=\"col-xs-2\" style=\"text-align: right;\">\n" +
+            "                    " + data[9] + "s\n" +
+            "                </div>\n" +
+            "            </div>\n" +
+            "            <div class=\"row\">\n" +
+            "                <div id=\"content\" class=\"fullwidth\" style=\"width: 100%;background-color: #ccc;height: 7px;\">\n" +
+            "                    <div class=\"expand\" style=\"width: " + (data[9] / 2.0 * 100) + "%;\"></div>\n" +
+            "                </div>\n" +
+            "            </div>\n" +
+            "            <div class=\"row\" style=\"padding: 9px 0px 0px 0px;\">\n" +
+            "                <div class=\"col-xs-3\">\n" +
+            "                    单速\n" +
+            "                </div>\n" +
+            "                <div class=\"col-xs-7\">\n" +
+            "                </div>\n" +
+            "                <div class=\"col-xs-2\" style=\"text-align: right;\">\n" +
+            "                    " + data[10] + "m/s\n" +
+            "                </div>\n" +
+            "            </div>\n" +
+            "            <div class=\"row\">\n" +
+            "                <div id=\"content\" class=\"fullwidth\" style=\"width: 100%;background-color: #ccc;height: 7px;\">\n" +
+            "                    <div class=\"expand\" style=\"width: " + (data[10] / 1000.0 * 100) + "%;\"></div>\n" +
+            "                </div>\n" +
+            "            </div>\n" +
+            "            <div class=\"row\" style=\"padding: 9px 0px 0px 0px;\">\n" +
+            "                <div class=\"col-xs-3\">\n" +
+            "                    装弹时间\n" +
+            "                </div>\n" +
+            "                <div class=\"col-xs-7\">\n" +
+            "                </div>\n" +
+            "                <div class=\"col-xs-2\" style=\"text-align: right;\">\n" +
+            "                    " + data[11] + "s\n" +
+            "                </div>\n" +
+            "            </div>\n" +
+            "            <div class=\"row\">\n" +
+            "                <div id=\"content\" class=\"fullwidth\" style=\"width: 100%;background-color: #ccc;height: 7px;\">\n" +
+            "                    <div class=\"expand\" style=\"width: " + (data[11] / 10.0 * 100) + "%;\"></div>\n" +
+            "                </div>\n" +
+            "            </div>\n" +
+            "            <div class=\"row\" style=\"padding: 9px 0px 0px 0px;\">\n" +
+            "                <div class=\"col-xs-3\">\n" +
+            "                    射程\n" +
+            "                </div>\n" +
+            "                <div class=\"col-xs-7\">\n" +
+            "                </div>\n" +
+            "                <div class=\"col-xs-2\" style=\"text-align: right;\">\n" +
+            "                    " + data[12] + "m\n" +
+            "                </div>\n" +
+            "            </div>\n" +
+            "            <div class=\"row\">\n" +
+            "                <div id=\"content\" class=\"fullwidth\" style=\"width: 100%;background-color: #ccc;height: 7px;\">\n" +
+            "                    <div class=\"expand\" style=\"width: " + (data[12] / 700.0 * 100) + "%;\"></div>\n" +
+            "                </div>\n" +
+            "            </div>\n" +
+            "            <div class=\"row\" style=\"padding: 9px 0px 0px 0px;\">\n" +
+            "                <div class=\"col-xs-3\">\n" +
+            "                    冲击力\n" +
+            "                </div>\n" +
+            "                <div class=\"col-xs-7\">\n" +
+            "                </div>\n" +
+            "                <div class=\"col-xs-2\" style=\"text-align: right;\">\n" +
+            "                    " + data[13] + "\n" +
+            "                </div>\n" +
+            "            </div>\n" +
+            "            <div class=\"row\">\n" +
+            "                <div id=\"content\" class=\"fullwidth\" style=\"width: 100%;background-color: #ccc;height: 7px;\">\n" +
+            "                    <div class=\"expand\" style=\"width: " + (data[13] / 50000.0 * 100) + "%;\"></div>\n" +
+            "                </div>\n" +
+            "            </div>"
+        return htmlData
+    }
+</script>
+<script>
+    function HTMLDecode(text) {
+        var temp = document.createElement("div");
+        temp.innerHTML = text;
+        var output = temp.innerText || temp.textContent;
+        temp = null;
+        return output;
+    }
+</script>
+{#  浮动面板  #}
+<script>
+    var ammoData = eval('(' + HTMLDecode('{{ ammoData }}') + ')')
+    var weapon_name = ''
+    var panel = FloatPanel('panel-float');
+    panel.set({
+        header: {
+            content: '武器信息',
+        },
+        footer: {                       //面板底部
+            enabled: true,              //是否启用
+            content: '以上数据,仅供参考',    //设置内容
+        },
+        floatHeight: 0,
+        closeBtn: false,
+        width: 400,
+    });
+    var loading_tar = '<div class="htmleaf-content" id="loading-arms">\n' +
+        '<span class="ls-1"></span>\n' +
+        '<span class="ls-2"></span>\n' +
+        '<span class="ls-3"></span>\n' +
+        '<span class="ls-4"></span>\n' +
+        '<span class="ls-5"></span>\n' +
+        '<span class="ls-6"></span>\n' +
+        '</div>'
+    $('.panels-arms').on('mouseenter', function (event, callback) {
+        //   panel.show({pageX: 300, pageY: 500});
+        panel.show({pageX: 300, pageY: 300});
+        var hoverDomObj = $(event.target);
+        weapon_name = hoverDomObj.attr('title')
+
+        {#$('#loading-arms').remove()#}
+        panel.set({
+            header: {
+                content: weapon_name,
+            },
+            body: {                         //面板中部
+                enabled: true,              //是否启用
+                content: htmlPanelData(ammoData[weapon_name]),   //设置内容
+            },
+            floatHeight: 0,
+            closeBtn: false,
+        });
+    });
+
+    $('.panels-arms').on('mouseleave', function (event) {
+        panel.hide(event);
+    });
+    panel.mouseleave(function (event) {
+        panel.hide()
+    });
+</script>
+
+<script>
+    function showArmsData(data) {
+        if (data == "all") {
+            $('#showType').empty()
+            armsTable1.columns([4]).search('').draw();
+            armsTable2.columns([5]).search('').draw();
+        } else {
+            $('#showType').empty()
+            $('#showType').append("当前分类：" + data)
+            armsTable1.columns([4]).search(data).draw();
+            armsTable2.columns([5]).search(data).draw();
+        }
+    }
+
+    function TagArmsData(data) {
+
+        $('#echartsPage').attr('src', '/eChartsDataPage?name=' + data)
+        if (data == 'big') {
+            $('#showType').empty()
+            $('#showType').append("远距离武器数据显示")
+        } else {
+            $('#showType').empty()
+            $('#showType').append("近距离武器数据显示")
+        }
+    }
+
+    function tabShow(data) {
+        if (data == '0') {
+            $('#sjtj').hide()
+            $('#sjlx').show()
+            $('#showType').empty()
+        } else {
+            $('#sjtj').show()
+            $('#sjlx').hide()
+            $('#showType').empty()
+            $('#showType').append("远距离武器数据显示")
+            $('#echartsPage').attr('src', '/eChartsDataPage?name=big')
+        }
+    }
+</script>
+<script>
+    {#$('.panel').css('background-color','rgba(6, 0, 0, 0.3)')#}
+    {#$('.panel').css('background-image','url("../../static/img/modelbody.png"))')#}
+    {#$('.panel').css('color','#fff')#}
+    {#$('.panel ul li').css('background-color','rgba(6, 0, 0, 0.3)')#}
+    {#$('.panel ul li a').css('color','#fff')#}
+</script>

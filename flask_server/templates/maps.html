@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="zh-Hans" style="background-color: #eaeaea;">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <title>地图显示</title>
+    <script src="../static/indexJs/index/log-reporter.js"></script>
+    <script src="../static/indexJs/index/jquery3.js"></script>
+    <link rel="stylesheet" href="../static/indexJs/home.css">
+
+    {#  Bootstrap  #}
+    <script src="../static/bootstrap/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="../static/bootstrap/bootstrap.min.css">
+
+    {#  瓦片地图插件加载  #}
+    <script src="../static/js/leaflet0.7/leaflet.js"></script>
+    <link rel="stylesheet" href="../static/js/leaflet0.7/leaflet.css">
+    {#    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css"/>#}
+    {#    <script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js"></script>#}
+
+    {#  热力图插件加载  #}
+    <script async="" src="../static/js/analytics.js"></script>
+    <link rel="stylesheet" href="../static/css/prism.css">
+    <script src="../static/js/prism.js"></script>
+    <script src="../static/js/heatmap.js"></script>
+    <script src="../static/js/leaflet-heatmap.js"></script>
+
+    {#  开关美化插件加载  #}
+    <script type="text/javascript" src="../static/icheck/icheck.js?v=1.0.2"></script>
+    <link rel="stylesheet" href="../static/icheck/icheck.css">
+    <link rel="stylesheet" href="../static/icheck/icommon.css">
+    {#  letterfx  #}
+    <link href="../static/js/jquery/letterfx/jquery-letterfx.css" rel="stylesheet" type="text/css"/>
+    <script src="../static/js/jquery/letterfx/jquery-letterfx.js"></script>
+
+    {#  pageloader.js  #}
+    <link rel="stylesheet" href="../static/css/win10.css">
+
+    <style type="text/css">
+        #map {
+            height: 500px;
+            width: 500px;
+        }
+
+        .tagline {
+            font-size: 35px;
+            font-weight: 600;
+            color: #fff;
+            position: fixed;
+            z-index: 100000;
+            bottom: 30px;
+            right: 50px;
+        }
+    </style>
+</head>
+<body style="background-color: #eaeaea;min-height: 1500px;margin: 0;">
+<div class="loading-page" id="loading-page">
+    <p class="tagline">冬天统治了一切，谁敢直面风雪？</p>
+    <div class="htmleaf-content"
+         style="position: fixed;top: 50%;left: 50%;text-align: center;transform: translate(-50%,-50%);">
+        <span class="loading-text" style="font-size: 30px;font-weight: 500;color: #fff;">准备战场中</span>
+        <span class="ls-1" style="height: 6px;width: 6px;background: #fff;"></span>
+        <span class="ls-2" style="height: 6px;width: 6px;background: #fff;"></span>
+        <span class="ls-3" style="height: 6px;width: 6px;background: #fff;"></span>
+        <span class="ls-4" style="height: 6px;width: 6px;background: #fff;"></span>
+        <span class="ls-5" style="height: 6px;width: 6px;background: #fff;"></span>
+        <span class="ls-6" style="height: 6px;width: 6px;background: #fff;"></span>
+    </div>
+</div>
+<script>
+    fx = {
+        "fx": "smear",
+        "backwards": false,
+        "timing": 200,
+        "fx_duration": "300ms",
+        "letter_end": "rewind",
+        "element_end": "restore"
+    }
+    $('.tagline').letterfx(fx);
+    $(function () {
+        setTimeout(function () {
+            $('#loading-page').remove()
+        }, 2000);
+    });
+</script>
+<div class="ie-tips"></div>
+<div id="home-app"></div>
+<div id="app">
+    <div class="bili-header-m report-wrap-module" style="background-color: #eaeaea">
+        <div class="nav-menu">
+            <div class="blur-bg"></div>
+            <div class="nav-mask" id="top" style="background-color: rgba(0,0,0,.2)"></div>
+            <div class="bili-wrapper clearfix">
+                <div class="nav-con fl">
+                    <ul>
+                        <li style="float: left;text-align: center;line-height: 42px;">
+                            <p id="sjcj"
+                               style="color: #f6f6f6;font-size: 19px;padding: 0px 15px 0px 0px;font-weight: 500;">
+                                数据求生</p>
+                        </li>
+                        <li class="nav-item">
+                            <a href="/" class="t"><span
+                                    class="glyphicon glyphicon-home"></span>&nbsp;首页</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="/dataStatistics" class="t">
+                                <span class="glyphicon glyphicon-stats"></span>&nbsp;数据统计
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="/arms" class="t">
+                                <span class="glyphicon glyphicon-screenshot"></span>&nbsp;武器分析
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="/maps" class="t" style="background-color: #ffffff80;color: #000;"><span
+                                    class="glyphicon glyphicon-map-marker"></span>&nbsp;地图分布</a>
+                        </li>
+                    </ul>
+                </div>
+                <div report-id="playpage_contribution" class="up-load fr">
+                    <a target="_blank" class="u-link t" style="font-size: 24px;" id="top-btn">
+                        <span class="glyphicon glyphicon-map-marker" id="top-icon"></span></a>
+                </div>
+            </div>
+        </div>
+
+        <video src="../static/av/bg_av.mp4"
+               style="position: fixed;top: 0px;left: 0;right: 0;bottom: 0;height: auto;z-index: -1000000;"
+               class="head-banner report-wrap-module report-scroll-module"
+               autoplay="autoplay" id="banner_link" preload="true" loop="loop"></video>
+        <div class="bili-wrapper" id="main" style="padding-top: 45px;">
+            <div class="row" style="width: 500px">
+                <div class="CheckDIY" id="CheckDIY" style="padding: 10px 10px 10px 15px;">
+                    <div id="map_list" class="row">
+
+                        <buttom onclick="tagMap(this)" title="erangel" class="col-xs-3" style="margin-top: 4px;">
+                            <div class="radio_sm-blue checked" style="background-color: #fff;" title="erangel"><input
+                                    type="radio" id="" name="MapName"
+                                    class="MapName"
+                                    value="erangel" checked="checked"
+                                    style="position: absolute; opacity: 0;">erangel
+                                <ins class="iCheck-helper"
+                                     style="position: absolute; top: 0%; left: 0%; display: block; width: 100%; height: 100%; margin: 0px; padding: 0px; background: rgb(255, 255, 255) none repeat scroll 0% 0%; border: 0px none; opacity: 0;"></ins>
+                            </div>
+
+                        </buttom>
+
+                        <buttom onclick="tagMap(this)" title="miramar" class="col-xs-3" style="margin-top: 4px;">
+                            <div class="radio_sm-blue" style="background-color: #fff;" title="miramar"><input
+                                    type="radio" id="" name="MapName"
+                                    class="MapName"
+                                    value="miramar" checked="checked"
+                                    style="position: absolute; opacity: 0;">miramar
+                                <ins class="iCheck-helper"
+                                     style="position: absolute; top: 0%; left: 0%; display: block; width: 100%; height: 100%; margin: 0px; padding: 0px; background: rgb(255, 255, 255) none repeat scroll 0% 0%; border: 0px none; opacity: 0;"></ins>
+                            </div>
+
+                        </buttom>
+
+
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div id='map' class="col-xs-6" style="float: left"></div>
+                <div id='rg panel' class="col-xs-6"
+                     style="float: right;-webkit-box-shadow: 0 1px 3px 0 rgba(0,0,0,.2);box-shadow: 0 1px 3px 0 rgba(0,0,0,.2);padding: 0;">
+                    <div class="panel panel-default" style="margin: 0">
+                        <div class="panel-heading">
+                            <h3 style="font-size: 28px;" class="panel-title row">
+
+                                <div class="col-xs-1" style="padding: 0;">
+                                    <span class="glyphicon glyphicon-map-marker" id="top-icon"></span>
+                                </div>
+                                <label style="background-color: #fff0;color: #000;font-size: 31px;margin: 0px 0px 0px 0px;padding: 0;"
+                                       id="mapName"
+                                       class="label label-default col-xs-3"></label>
+                                <div class="loading-heatmap col-xs-5" id="loading-heatmap">
+
+                                </div>
+                            </h3>
+                        </div>
+                        <div class="panel-body" style="width: 100%;height: 444px;padding: 15px;">
+
+                            <div class="panel panel-default">
+                                <div class="panel-body">
+                                    <div class="row" style="padding: 4px 4px 4px 4px;">
+                                        <div onclick="showHeatMap(this)" title="FirstCircle" class="col-xs-4"
+                                             style="margin-top: 4px;">
+                                            <div id="btn1" class="icheckbox_sm-blue">
+                                                <input type="checkbox" id="isHeatMap" class="city"
+                                                       style="position: absolute; opacity: 0;">绝地战场
+                                                <ins class="iCheck-helper"
+                                                     style="position: absolute; top: 0%; left: 0%; display: block; width: 100%; height: 100%; margin: 0px; padding: 0px; background: rgb(255, 255, 255) none repeat scroll 0% 0%; border: 0px none; opacity: 0;"></ins>
+                                            </div>
+                                        </div>
+                                        <div class="col-xs-8" style="margin-top: 4px;">
+                                            <p style="font-size: 18px;font-weight: 500;">绝地战场</p>
+                                            <p style="color: #8f8f8f;">显示第一个毒圈时，战斗最激烈的地点。</p>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <div class="row" style="padding: 4px 4px 4px 4px;">
+                                        <div onclick="showHeatMap(this)" title="RedZone" class="col-xs-4"
+                                             style="margin-top: 4px;">
+                                            <div id="btn2" class="icheckbox_sm-blue">
+                                                <input type="checkbox" id="isHeatMap" class="city"
+                                                       style="position: absolute; opacity: 0;">轰炸区
+                                                <ins class="iCheck-helper"
+                                                     style="position: absolute; top: 0%; left: 0%; display: block; width: 100%; height: 100%; margin: 0px; padding: 0px; background: rgb(255, 255, 255) none repeat scroll 0% 0%; border: 0px none; opacity: 0;"></ins>
+                                            </div>
+                                        </div>
+                                        <div class="col-xs-8" style="margin-top: 4px;">
+                                            <p style="font-size: 18px;font-weight: 500;">轰炸区</p>
+                                            <p style="color: #8f8f8f;">显示轰炸区经常出现的地带。</p>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <div class="row" style="padding: 4px 4px 4px 4px;">
+                                        <div onclick="showHeatMap(this)" title="LastPoisonCircle" class="col-xs-4"
+                                             style="margin-top: 4px;">
+                                            <div id="btn3" class="icheckbox_sm-blue">
+                                                <input type="checkbox" id="isHeatMap" class="city"
+                                                       style="position: absolute; opacity: 0;">决赛区
+                                                <ins class="iCheck-helper"
+                                                     style="position: absolute; top: 0%; left: 0%; display: block; width: 100%; height: 100%; margin: 0px; padding: 0px; background: rgb(255, 255, 255) none repeat scroll 0% 0%; border: 0px none; opacity: 0;"></ins>
+                                            </div>
+                                        </div>
+                                        <div class="col-xs-8" style="margin-top: 4px;">
+                                            <p style="font-size: 18px;font-weight: 500;">决赛区</p>
+                                            <p style="color: #8f8f8f;">显示决赛区常出现的地带。</p>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <div class="row" style="padding: 4px 4px 4px 4px;">
+                                        <div onclick="showHeatMap(this)" title="exit" class="col-xs-4"
+                                             style="margin-top: 4px;">
+                                            <div id="btn0" class="icheckbox_sm-blue checked">
+                                                <input type="checkbox" id="isHeatMap" class="city"
+                                                       style="position: absolute; opacity: 0;">不显示
+                                                <ins class="iCheck-helper"
+                                                     style="position: absolute; top: 0%; left: 0%; display: block; width: 100%; height: 100%; margin: 0px; padding: 0px; background: rgb(255, 255, 255) none repeat scroll 0% 0%; border: 0px none; opacity: 0;"></ins>
+                                            </div>
+                                        </div>
+                                        <div class="col-xs-8" style="margin-top: 4px;">
+                                            <p style="font-size: 18px;font-weight: 500;">不显示</p>
+                                            <p style="color: #8f8f8f;">不显示任何热力图。</p>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                            <div class="map-info__heat-map-desc">
+                                <div class="map-info__heat-map-amount-bar">
+                                    <span class="map-info__heat-map-left-txt">低</span>
+                                    <span class="map-info__heat-map-right-txt">高</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+<script type="text/javascript">
+
+    var heatPorintData = {
+        max: 100,
+        min: 0,
+        data: []
+    }
+
+
+    var mapcenter = new L.latLng(0, 0);
+    //地图的中心点的对象
+    var thisMap = "erangel"
+    var cfg = {
+        crs: L.CRS.Simple,
+        radius: 4,
+        "maxOpacity": .9,
+        "minOpacity": .7,
+        blur: .9,
+        latField: 'lat',
+        lngField: 'lng',
+        valueField: 'count',
+        continuousWorld: true,
+        noWrap: true,
+        gradient: {
+            '0.01': '#676eff4d',
+            '0.2': '#4aeb6c',
+            '0.4': '#fff200',
+            '0.5': '#f44',
+            '0.6': '#e33eff',
+        },
+    };
+    var heatmapLayer = new HeatmapOverlay(cfg);
+    var url = "../static/map/" + "erangel" + "/{z}x{x}x{y}.jpg";
+    tilemap = L.tileLayer(url,
+        {
+            center: mapcenter,   //地图中心点
+            continuousWorld: true,
+            noWrap: true,
+            {#tileSize: 200,#}
+        })
+    var map = new L.Map("map", {    //"map"为需要插入地图的div的id
+        center: mapcenter,   //地图中心点
+        zoom: 1,           //默认展示的缩放级别
+        minZoom: 1,         //最小缩放级别
+        maxZoom: 4,        //最大缩放级别
+        opacity: 0.1,       //图层的不透明度
+        continuousWorld: true,
+        zoomOffset: 0,
+        noWrap: true,
+        zoomAnimation: true,
+        updateWhenIdle: !0,
+    });
+    var ishm = false;
+
+    function initMapLoading(mapName) {
+        map.addLayer(tilemap);
+        {#latlngToPoint() //加载经纬度#}
+        map.addLayer(heatmapLayer);
+        map.setMaxBounds([[-90, -180], [90, 180]])
+        heatmapLayer.setData(heatPorintData);
+
+        $('#mapName').html(mapName)
+        map.removeLayer(heatmapLayer)
+    }
+
+    {# 初始化 #}
+    initMapLoading('erangel')
+    var pointDataType = ''
+
+    function tagMap(obj) {
+        thisMap = $(obj).attr('title')
+        $('#map_list').find(".radio_sm-blue").each(function () {
+            $(this).removeClass("checked");
+            if ($(this).attr('title') == $(obj).attr('title')) {
+                $(this).addClass('checked')
+            }
+        });
+
+        map.removeLayer(tilemap);
+        url = "../static/map/" + thisMap + "/{z}x{x}x{y}.jpg";
+        tilemap = L.tileLayer(url,
+            {
+                continuousWorld: true,
+                noWrap: true,
+            })
+        map.addLayer(tilemap);
+        $('#mapName').html(thisMap);
+        if (pointDataType != '') {
+            map.setZoom(1)
+            map.removeLayer(heatmapLayer);
+            ajaxPointData(pointDataType)
+            setTimeout(function () {
+                map.addLayer(heatmapLayer);
+            }, 1000)
+        }
+    }
+
+    var btnSock = false
+
+    function ajaxPointData(dataType) {
+        btnSock = true
+        $('#loading-heatmap').append(loadingHeadMap())
+        $.ajax({
+            url: '/tojson/getHeadPoint' + dataType,
+            type: 'post',
+            dataType: 'json',
+            data: {
+                'mapName': thisMap.toUpperCase()
+            },
+            success: function (data) {
+                heatPorintData.data = data
+                var i = heatPorintData.data.length - 1
+                for (; i >= 0; i--) {
+                    var lnglatData = map.layerPointToLatLng(L.point(heatPorintData.data[i].lng / 2.0 + 6, heatPorintData.data[i].lat / 2.0 - 6))
+                    heatPorintData.data[i].lng = lnglatData.lng
+                    heatPorintData.data[i].lat = lnglatData.lat
+                }
+                heatmapLayer.setData(heatPorintData);
+                $('#loading-heatmap').empty()
+                btnSock = false
+            },
+            error: function (xhr) {
+                //  alert(xhr.status)
+                $('#loading-heatmap').empty()
+                btnSock = false
+            }
+        });
+
+    }
+
+    function loadingHeadMap() {
+        var str = "                                    <div class=\"htmleaf-content\"\n" +
+            "                                         style=\"\">\n" +
+            "                                        <span class=\"ls-1\" style=\"height: 6px;width: 6px;background: #000;margin: 5px 2px\"></span>\n" +
+            "                                        <span class=\"ls-2\" style=\"height: 6px;width: 6px;background: #000;margin: 5px 2px\"></span>\n" +
+            "                                        <span class=\"ls-3\" style=\"height: 6px;width: 6px;background: #000;margin: 5px 2px\"></span>\n" +
+            "                                        <span class=\"ls-4\" style=\"height: 6px;width: 6px;background: #000;margin: 5px 2px\"></span>\n" +
+            "                                        <span class=\"ls-5\" style=\"height: 6px;width: 6px;background: #000;margin: 5px 2px\"></span>\n" +
+            "                                        <span class=\"ls-6\" style=\"height: 6px;width: 6px;background: #000;margin: 5px 2px\"></span>\n" +
+            "                                    </div>"
+        return str
+    }
+
+    function showHeatMap(btn) {
+        if (!btnSock) {
+            map.setZoom(1)
+            var thisTitle = $(btn).attr('title')
+            var btn1 = $('#btn1')
+            var btn2 = $('#btn2')
+            var btn3 = $('#btn3')
+            var btn0 = $('#btn0')
+            if (thisTitle == 'exit') {
+                pointDataType = ''
+                btn1.removeClass('checked')
+                btn2.removeClass('checked')
+                btn3.removeClass('checked')
+                btn0.removeClass('checked')
+                btn0.addClass('checked')
+                map.removeLayer(heatmapLayer);
+            } else if (thisTitle == 'FirstCircle') {
+                pointDataType = 'FirstCircle'
+                ajaxPointData('FirstCircle')
+                btn0.removeClass('checked')
+                btn1.removeClass('checked')
+                btn2.removeClass('checked')
+                btn3.removeClass('checked')
+                btn1.addClass('checked')
+                map.removeLayer(heatmapLayer);
+                var cfg = {
+                    crs: L.CRS.Simple,
+                    radius: 4,
+                    "maxOpacity": .9,
+                    "minOpacity": .7,
+                    blur: .9,
+                    latField: 'lat',
+                    lngField: 'lng',
+                    valueField: 'count',
+                    continuousWorld: true,
+                    noWrap: true,
+                    gradient: {
+                        '0.01': '#676eff4d',
+                        '0.2': '#4aeb6c',
+                        '0.4': '#fff200',
+                        '0.5': '#f44',
+                        '0.6': '#e33eff',
+                    },
+                };
+                heatmapLayer = new HeatmapOverlay(cfg);
+                map.addLayer(heatmapLayer);
+            } else if (thisTitle == 'RedZone') {
+                pointDataType = 'RedZone'
+                ajaxPointData('RedZone')
+                btn0.removeClass('checked')
+                btn1.removeClass('checked')
+                btn2.removeClass('checked')
+                btn3.removeClass('checked')
+                btn2.addClass('checked')
+                map.removeLayer(heatmapLayer);
+                var cfg = {
+                    crs: L.CRS.Simple,
+                    radius: 4,
+                    "maxOpacity": .9,
+                    "minOpacity": .7,
+                    blur: .9,
+                    latField: 'lat',
+                    lngField: 'lng',
+                    valueField: 'count',
+                    continuousWorld: true,
+                    noWrap: true,
+                    gradient: {
+                        '0.01': '#ff6f74',
+                        '0.2': '#ff4d57',
+                        '0.4': '#ff2e34',
+                        '0.5': '#ff000b',
+                        '0.7': '#e33eff',
+                    },
+                };
+                heatmapLayer = new HeatmapOverlay(cfg);
+                map.addLayer(heatmapLayer);
+            } else if (thisTitle == 'LastPoisonCircle') {
+                pointDataType = 'LastPoisonCircle'
+                ajaxPointData('LastPoisonCircle')
+                btn0.removeClass('checked')
+                btn1.removeClass('checked')
+                btn2.removeClass('checked')
+                btn3.removeClass('checked')
+                btn3.addClass('checked')
+                map.removeLayer(heatmapLayer);
+                var cfg = {
+                    crs: L.CRS.Simple,
+                    radius: 4,
+                    "maxOpacity": .9,
+                    "minOpacity": .9,
+                    blur: .9,
+                    latField: 'lat',
+                    lngField: 'lng',
+                    valueField: 'count',
+                    continuousWorld: true,
+                    noWrap: true,
+                    gradient: {
+                        '0.01': '#ff6f74',
+                        '0.2': '#ff4d57',
+                        '0.4': '#ff2e34',
+                        '0.5': '#ff000b',
+                        '0.7': '#e33eff',
+                    },
+                };
+                heatmapLayer = new HeatmapOverlay(cfg);
+                map.addLayer(heatmapLayer);
+            }
+        }
+
+    }
+
+
+</script>
+{#  顶栏效果  #}
+<script>
+    var topIcon = $('#top-icon')
+    var topBtn = $('#top-btn')
+
+
+    function topbar() {
+        var top = $('#top')
+        var bg = $('#banner_link')
+        var thisHeight = $(window).scrollTop()
+
+
+        if (thisHeight > 700) {
+            topIcon.removeClass("glyphicon-map-marker")
+            topIcon.addClass("glyphicon-hand-up")
+            {#top.css('background-color', 'rgba(221,135,0,1)');#}
+        } else {
+            topIcon.removeClass("glyphicon-hand-up")
+            topIcon.addClass("glyphicon-map-marker")
+
+        }
+
+    }
+
+    $(window).scroll(function () {
+        topbar()
+    });
+    topbar()
+</script>
+{#  返回顶栏  #}
+<script>
+    function returnTop() {
+        $("html,body").stop(true);
+        $("html,body").animate({scrollTop: $("#main").offset().top}, 1000);
+        return false;
+    }
+
+    $(function () {
+        returnTop()
+        topbar()
+    });
+
+    topBtn.click(function () {
+        returnTop()
+    })
+</script>
